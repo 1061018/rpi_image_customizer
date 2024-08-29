@@ -1,21 +1,41 @@
 name: Generate Custom Image
 on: [push]
-
 env:
-  image_name: my_image.img
+  image_name: my_rpi_custom_image.img
 
 jobs:
   generate_custom_image:
     runs-on: ubuntu-22.04
     steps:
-      - name: my-step
-        run: echo "Hello World!"
-
-      - name: Download a file
-        run: curl https://downloads.raspberrypi.org/raspios_oldstable_lite_armhf/images/raspios_oldstable_lite_armhf-2023-02-22/2023-02-21-raspios-buster-armhf-lite.img.xz -o ${{ env.image_name }}
+      - name: Checkout code
+        uses: actions/checkout@v3
       
+      - name: Check if image is downloaded and decompressed
+        run: tree
+      
+      - name: Image Fetcher
+        run: python3 rpi_image_customizer/src/image_fetcher.py ${{ env.image_name }}
+      - name: Check if image is downloaded and decompressed
+        run: tree
+
+      - name: Gather secrets
+        run: python3 src/gather_secrets.py
+
+      # - name: Render template
+      #   run: python3 src/template_renderer.py
+      #   env:
+      #     HOSTNAME: ${{ secrets[format('{0}', env.host_name)] }}
+      #     NAMEUSER: ${{ secrets[format('{0}', env.user_name)] }}
+      #     NAMEUSERPASSWORD: ${{ secrets[format('{0}', env.user_name_password)] }}
+      #     WIFISSID: ${{ secrets[format('{0}', env.wifi_ssid)] }}
+      #     WIFIPASSWORD: ${{ secrets[format('{0}', env.wifi_password)] }}
+      #     SSHPUBLICKEY: ${{ secrets[format('{0}', env.ssh_public_key)] }}
+
+      # - name: Run script
+      #   run: sudo sh ./src/scripts/customize_image.sh ${{ env.image_name }}
+
       - name: Upload data to artifactory
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Rasp_custom_image
           path: ${{ env.image_name }}
