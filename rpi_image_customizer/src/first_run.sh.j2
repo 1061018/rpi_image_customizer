@@ -1,0 +1,81 @@
+#!/bin/bash
+
+set +e
+
+{% if new_hostname %}
+CURRENT_HOSTNAME=`cat /etc/hostname | tr -d " \t\n\r"`
+echo {{ new_hostname }} >/etc/hostname
+sed -i "s/127.0.1.1.*$CURRENT_HOSTNAME/127.0.1.1\t{{ new_hostname }}/g" /etc/hosts
+{% endif %}
+
+{% if enable_ssh or set_user %}
+FIRSTUSER=`getent passwd 1000 | cut -d: -f1`
+FIRSTUSERHOME=`getent passwd 1000 | cut -d: -f6`
+{% endif %}
+
+{% if enable_ssh %}
+{% if ssh_public_key %}
+install -o "$FIRSTUSER" -m 700 -d "$FIRSTUSERHOME/.ssh"
+install -o "$FIRSTUSER" -m 600 <(printf "{{ ssh_public_key }}") "$FIRSTUSERHOME/.ssh/authorized_keys"
+echo 'PasswordAuthentication no' >>/etc/ssh/sshd_config
+{% endif %}
+systemctl enable ssh
+{% endif %}
+
+{% if set_user %}
+echo "$FIRSTUSER:"'{{ user_password }}' | chpasswd # -e
+if [ "$FIRSTUSER" != "{{ user_name }}" ]; then
+   usermod -l "{{ user_name }}" "$FIRSTUSER"
+   usermod -m -d "/home/{{ user_name }}" "{{ user_name }}"
+   groupmod -n "{{ user_name }}" "$FIRSTUSER"
+   if grep -q "^autologin-user=" /etc/lightdm/lightdm.conf ; then
+      sed /etc/lightdm/lightdm.conf -i -e "s/^autologin-user=.*/autologin-user={{ user_name }}/"
+   fi
+   if [ -f /etc/systemd/system/getty@tty1.service.d/autologin.conf ]; then
+      sed /etc/systemd/system/getty@tty1.service.d/autologin.conf -i -e "s/$FIRSTUSER/{{ user_name }}/"
+   fi
+   if [ -f /etc/sudoers.d/010_pi-nopasswd ]; then
+      sed -i "s/^$FIRSTUSER /{{ user_name }} /" /etc/sudoers.d/010_pi-nopasswd
+   fi
+fi
+{% endif %}
+
+{% if enable_wifi %}
+cat >/etc/wpa_supplicant/wpa_supplicant.conf <<'WPAEOF'
+country={{ wifi_country }}
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+ap_scan=1
+
+update_config=1
+network={
+{% if hidden_ssid %}   scan_ssid=1{% endif %}
+	ssid="{{ wifi_ssid }}"
+	psk="{{ wifi_pass }}"
+}
+
+WPAEOF
+   chmod 600 /etc/wpa_supplicant/wpa_supplicant.conf
+   rfkill unblock wifi
+   for filename in /var/lib/systemd/rfkill/*:wlan ; do
+       echo 0 > $filename
+   done
+{% endif %}
+
+{% if set_local %}
+rm -f /etc/localtime
+echo "{{ timezone }}" >/etc/timezone
+dpkg-reconfigure -f noninteractive tzdata
+cat >/etc/default/keyboard <<'KBEOF'
+XKBMODEL="pc105"
+XKBLAYOUT="{{ keyboard }}"
+XKBVARIANT=""
+XKBOPTIONS=""
+
+KBEOF
+   dpkg-reconfigure -f noninteractive keyboard-configuration
+{% endif %}
+
+
+rm -f /boot/first_run.sh
+sed -i 's| systemd.run.*||g' /boot/cmdline.txt
+exit 0

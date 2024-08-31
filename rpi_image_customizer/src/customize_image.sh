@@ -1,25 +1,38 @@
 #!/usr/bin/bash
+
+set -e
+
 echo "We are running the customization script!"
 
-# VARS
-URL="https://downloads.raspberrypi.org/raspios_oldstable_lite_armhf/images/raspios_oldstable_lite_armhf-2023-02-22/2023-02-21-raspios-buster-armhf-lite.img.xz"
-IMG_FILE="2023-02-21-raspios-buster-armhf-lite.img"
+IMAGE_NAME=$1
 
-# Download and uncompress the .img.xz file
-curl -L "$URL" | unxz -c > "$IMG_FILE"
-# Create mount point directorie
+# List the image partitions
+fdisk -l $IMAGE_NAME
+
+# Calculate mount offsets and assign to variables:
+BOOT_OFFSET=$(fdisk -l $IMAGE_NAME | grep img1 | awk '{print $2 * 512}')
+
+# Calculate mount size limits and assign to variables:
+BOOT_SIZE=$(fdisk -l $IMAGE_NAME | grep img1 | awk '{print $4 * 512}')
+
+# Create mount point directories:
 sudo mkdir -p /mnt/rpi/img1
 
-# Calculate mount offsets and size limits to assign to variables:
-BOOT_OFFSET=$(fdisk -l $IMG_FILE | grep img1 | awk '{print $2 * 512}')
-BOOT_SIZE=$(fdisk -l $IMG_FILE | grep img1 | awk '{print $4 * 512}')
-# Mount partition using the following commands:
-sudo mount -o offset=$BOOT_OFFSET,sizelimit=$BOOT_SIZE $IMG_FILE /mnt/rpi/img1
+# Mount both partitions using the following commands:
+sudo mount -o offset=$BOOT_OFFSET,sizelimit=$BOOT_SIZE $IMAGE_NAME /mnt/rpi/img1
 
+ls -l /mnt/rpi/img1/cmdline.txt
+echo "Imagem montada e pronta para ser manipulada"
+
+# add the instruction to cmdline.txt in the boot partition to  run the first_run.sh file
+printf '%s%s' "$(head -n 1 /mnt/rpi/img1/cmdline.txt)" " systemd.run=/boot/first_run.sh systemd.run_success_action=reboot systemd.unit=kernel-command-line.target" > /mnt/rpi/img1/cmdline.txt
+
+cat /mnt/rpi/img1/cmdline.txt
 
 # copy the first_run.sh to boot partition
 cp ./first_run.sh /mnt/rpi/img1/
-# Edit cmdline.txt in the boot partition to run the first_run.sh file
-printf '%s%s' "$(head -n 1 /mnt/rpi/img1/cmdline.txt)" " systemd.run=/boot/first_run.sh systemd.run_success_action=reboot systemd.unit=kernel-command-line.target" > /mnt/rpi/img1/cmdline.txt
+
+# always syncronize your actions before saving or umount
 sync
+ls -l /mnt/rpi/img1
 umount /mnt/rpi/img1

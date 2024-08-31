@@ -3,7 +3,7 @@ from jinja2 import Template
 from template_vars import data
 from yaml_reader import YamlParser
 
-FIRST_RUN_J2_PATH = "rpi_image_customizer/src/firstrun.sh.j2"
+FIRST_RUN_J2_PATH = "rpi_image_customizer/src/first_run.sh.j2"
 
 def verify_condition(name, password, region):
     if not name and not password and not region:
@@ -54,7 +54,7 @@ def main():
 
     final_script = template.render(data)
 
-    with open('firstrun.sh', 'w') as f:
+    with open('first_run.sh', 'w') as f:
         f.write(final_script)
 
 if __name__ == "__main__":
