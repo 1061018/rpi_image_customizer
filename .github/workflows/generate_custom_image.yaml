@@ -16,7 +16,7 @@ jobs:
       - name: Gather User Data
         run: python3 rpi_image_customizer/src/gather_user_data.py
 
-      - name: Render template
+      - name: Render Template
         run: python3 rpi_image_customizer/src/template_render.py
         env:
           HOSTNAME: ${{ secrets[format('{0}', env.host_name)] }}
@@ -26,11 +26,8 @@ jobs:
           WIFIPASSWORD: ${{ secrets[format('{0}', env.wifi_password)] }}
           SSHPUBLICKEY: ${{ secrets[format('{0}', env.ssh_public_key)] }}
 
-      - name: Run script
+      - name: Run Customize Script
         run: sudo sh ./rpi_image_customizer/src/customize_image.sh ${{ env.image_name }}
-
-      - name: check file
-        run: cat first_run.sh
 
       - name: Upload data to artifactory
         uses: actions/upload-artifact@v4

@@ -2,7 +2,7 @@ data = {
     "new_hostname": "",
     "enable_ssh": False,
     "set_user": False,
-    "ssh_public_key": "", #or password_auth
+    "ssh_public_key": "",
     "ssh_password_authentication": False,
     "user_name": "",
     "user_password": "",
@@ -13,5 +13,5 @@ data = {
     "hidden_ssid": False,
     "set_local": False,
     "keyboard": "",
-    "timezone": ""
+    "timezone": "",
 }

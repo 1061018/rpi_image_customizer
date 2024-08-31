@@ -21,6 +21,10 @@ def main(args):
     image_path = yaml_reader.get_image_path()
     print(f"Downloading image {image_path}.")
     response = requests.get(url=image_path)
+    if response.status_code != 200:
+        raise requests.HTTPError(
+            f"Expected status code 200 when downloading the RPI image from url { image_path }, but received {response.status_code} instead."
+        )
     print("Image downloaded, initiating decompression!")
     decompressed_content = lzma.decompress(response.content)
     print("Image decompressed!")
