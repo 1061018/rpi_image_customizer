@@ -24,15 +24,15 @@ sudo mount -o offset=$BOOT_OFFSET,sizelimit=$BOOT_SIZE $IMAGE_NAME /mnt/rpi/img1
 ls -l /mnt/rpi/img1/cmdline.txt
 echo "Imagem montada e pronta para ser manipulada"
 
-# add the instruction to cmdline.txt in the boot partition to  run the first_run.sh file
+# Add the instruction to cmdline.txt in the boot partition to  run the first_run.sh file
 printf '%s%s' "$(head -n 1 /mnt/rpi/img1/cmdline.txt)" " systemd.run=/boot/first_run.sh systemd.run_success_action=reboot systemd.unit=kernel-command-line.target" > /mnt/rpi/img1/cmdline.txt
 
 cat /mnt/rpi/img1/cmdline.txt
 
-# copy the first_run.sh to boot partition
+# Aopy the first_run.sh to boot partition
 cp ./first_run.sh /mnt/rpi/img1/
 
-# always syncronize your actions before saving or umount
+# Always syncronize your actions before saving or umount
 sync
 ls -l /mnt/rpi/img1
 umount /mnt/rpi/img1
