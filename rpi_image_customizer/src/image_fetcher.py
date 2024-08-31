@@ -1,16 +1,16 @@
 """
 Fetches images
 """
+
 import argparse
 import lzma
 import requests
 from yaml_reader import YamlParser
 
+
 def parse_input_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "image_name", help="The name for the RPI image.", type= str
-    )
+    parser.add_argument("image_name", help="The name for the RPI image.", type=str)
     args = parser.parse_args()
     return args
 
@@ -25,12 +25,11 @@ def main(args):
     decompressed_content = lzma.decompress(response.content)
     print("Image decompressed!")
 
-
-
     with open(args.image_name, "wb") as fp:
         fp.write(decompressed_content)
 
     print("Image available for customization!")
+
 
 if __name__ == "__main__":
     args = parse_input_arguments()

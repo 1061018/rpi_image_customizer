@@ -19,7 +19,7 @@ jobs:
         run: tree
 
       - name: Gather secrets
-        run: python3 src/gather_secrets.py
+        run: python3 rpi_image_customizer/src/gather_user_data.py
 
       # - name: Render template
       #   run: python3 src/template_renderer.py
