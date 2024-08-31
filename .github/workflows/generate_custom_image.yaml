@@ -8,28 +8,23 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-      
-      - name: Check if image is downloaded and decompressed
-        run: tree
+        uses: actions/checkout@v4
       
       - name: Image Fetcher
         run: python3 rpi_image_customizer/src/image_fetcher.py ${{ env.image_name }}
-      - name: Check if image is downloaded and decompressed
-        run: tree
 
-      - name: Gather secrets
+      - name: Gather User Data
         run: python3 rpi_image_customizer/src/gather_user_data.py
 
-      # - name: Render template
-      #   run: python3 src/template_renderer.py
-      #   env:
-      #     HOSTNAME: ${{ secrets[format('{0}', env.host_name)] }}
-      #     NAMEUSER: ${{ secrets[format('{0}', env.user_name)] }}
-      #     NAMEUSERPASSWORD: ${{ secrets[format('{0}', env.user_name_password)] }}
-      #     WIFISSID: ${{ secrets[format('{0}', env.wifi_ssid)] }}
-      #     WIFIPASSWORD: ${{ secrets[format('{0}', env.wifi_password)] }}
-      #     SSHPUBLICKEY: ${{ secrets[format('{0}', env.ssh_public_key)] }}
+      - name: Render template
+        run: python3 rpi_image_customizer/src/template_render.py
+        env:
+          HOSTNAME: ${{ secrets[format('{0}', env.host_name)] }}
+          NAMEUSER: ${{ secrets[format('{0}', env.user_name)] }}
+          NAMEUSERPASSWORD: ${{ secrets[format('{0}', env.user_name_password)] }}
+          WIFISSID: ${{ secrets[format('{0}', env.wifi_ssid)] }}
+          WIFIPASSWORD: ${{ secrets[format('{0}', env.wifi_password)] }}
+          SSHPUBLICKEY: ${{ secrets[format('{0}', env.ssh_public_key)] }}
 
       # - name: Run script
       #   run: sudo sh ./src/scripts/customize_image.sh ${{ env.image_name }}
