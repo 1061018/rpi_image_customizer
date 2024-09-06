@@ -2,14 +2,14 @@
 # Path to RPI OS image
 raspberry_py_image: "https://downloads.raspberrypi.org/raspios_oldstable_lite_armhf/images/raspios_oldstable_lite_armhf-2023-02-22/2023-02-21-raspios-buster-armhf-lite.img.xz"
 # User Data as Secrets
-host_name: 
-user_name: 
-user_name_password: 
-wifi_ssid: 
-wifi_password: 
-ssh_public_key: 
+host_name: HOST_NAME
+user_name: USER_NAME
+user_name_password: USER_NAME_PASSWORD
+wifi_ssid: WIFI_SSID
+wifi_password: WIFI_PASSWORD
+ssh_public_key:
 # Direct input configurations
-wifi_country: "PT"
+wifi_country: 
 hidden_ssid: False
 enable_ssh: True
 ssh_password_authentication: True
